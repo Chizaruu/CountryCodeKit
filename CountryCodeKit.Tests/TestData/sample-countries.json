@@ -1,0 +1,50 @@
+[
+  {
+    "name": "Test Country Alpha",
+    "officialName": "Republic of Test Alpha",
+    "alpha2Code": "TA",
+    "alpha3Code": "TAA",
+    "numericCode": "901",
+    "callingCode": "901",
+    "region": "Test Region",
+    "subregion": "Test Subregion Alpha",
+    "alternativeNames": [ "TestAlpha", "AlphaLand" ],
+    "localizedNames": {
+      "es": "País de Prueba Alfa",
+      "fr": "Pays de Test Alpha",
+      "de": "Testland Alpha"
+    }
+  },
+  {
+    "name": "Test Country Beta",
+    "officialName": "Kingdom of Test Beta",
+    "alpha2Code": "TB",
+    "alpha3Code": "TBB",
+    "numericCode": "902",
+    "callingCode": "902",
+    "region": "Test Region",
+    "subregion": "Test Subregion Beta",
+    "alternativeNames": [ "TestBeta", "BetaLand" ],
+    "localizedNames": {
+      "es": "País de Prueba Beta",
+      "fr": "Pays de Test Beta",
+      "de": "Testland Beta"
+    }
+  },
+  {
+    "name": "Test Country Gamma",
+    "officialName": "United States of Test Gamma",
+    "alpha2Code": "TG",
+    "alpha3Code": "TGG",
+    "numericCode": "903",
+    "callingCode": "903",
+    "region": "Test Region",
+    "subregion": "Test Subregion Gamma",
+    "alternativeNames": [ "TestGamma", "GammaLand" ],
+    "localizedNames": {
+      "es": "País de Prueba Gamma",
+      "fr": "Pays de Test Gamma",
+      "de": "Testland Gamma"
+    }
+  }
+]

@@ -29,6 +29,11 @@
 		<NoWarn>$(NoWarn);CS1591</NoWarn>
 		<!-- Suppress warnings for missing XML comments -->
 	</PropertyGroup>
+	<ItemGroup>
+	  <Compile Remove="CountryCodeKit.Tests\**" />
+	  <EmbeddedResource Remove="CountryCodeKit.Tests\**" />
+	  <None Remove="CountryCodeKit.Tests\**" />
+	</ItemGroup>
 
 	<!-- Files to include in the package -->
 	<ItemGroup>
@@ -52,6 +57,6 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All"/>
+		<PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All" />
 	</ItemGroup>
 </Project>

@@ -2,6 +2,7 @@
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Globalization;
+using System.Diagnostics;
 
 namespace CountryCodeKit
 {
@@ -24,6 +25,13 @@ namespace CountryCodeKit
         {
             try
             {
+                // Configure JSON serializer options to handle property name casing
+                var jsonOptions = new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true,
+                    AllowTrailingCommas = true
+                };
+
                 // Try to load from embedded resource first
                 var embeddedResourceName = typeof(CountryMapper).Namespace + ".Data.countries.json";
                 var stream = typeof(CountryMapper).Assembly.GetManifestResourceStream(embeddedResourceName);
@@ -32,7 +40,12 @@ namespace CountryCodeKit
                 {
                     using var reader = new StreamReader(stream);
                     var json = reader.ReadToEnd();
-                    return JsonSerializer.Deserialize<List<Country>>(json) ?? [];
+                    var countries = JsonSerializer.Deserialize<List<Country>>(json, jsonOptions);
+
+                    if (countries != null && countries.Count > 0)
+                    {
+                        return countries;
+                    }
                 }
 
                 // Fallback to loading from file if available
@@ -40,15 +53,20 @@ namespace CountryCodeKit
                 if (File.Exists(filePath))
                 {
                     var json = File.ReadAllText(filePath);
-                    return JsonSerializer.Deserialize<List<Country>>(json) ?? [];
+                    var countries = JsonSerializer.Deserialize<List<Country>>(json, jsonOptions);
+
+                    if (countries != null && countries.Count > 0)
+                    {
+                        return countries;
+                    }
                 }
             }
             catch
             {
-                // If any error occurs, throw an exception
+                // Silently continue to empty list
             }
 
-            // Throw an exception if no data is found
+            // If all attempts failed, throw an exception
             throw new InvalidOperationException("Country data not found. Please provide a valid JSON file or embedded resource.");
         }
 
@@ -67,7 +85,17 @@ namespace CountryCodeKit
             // Clean input
             input = input.Trim();
 
-            // Try to find the country
+            // Special case for numeric codes - try direct conversion first
+            if (int.TryParse(input, out int numericCode))
+            {
+                var countryByNumeric = Countries.FirstOrDefault(c =>
+                    int.TryParse(c.NumericCode, out int countryNumeric) && countryNumeric == numericCode);
+
+                if (countryByNumeric != null)
+                    return GetCountryFormat(countryByNumeric, outputFormat, cultureName);
+            }
+
+            // Try to find the country using normal methods
             var country = FindCountry(input);
             if (country == null)
                 return null;
@@ -171,27 +199,61 @@ namespace CountryCodeKit
             if (country != null)
                 return country;
 
-            // Try phone number format (+XX country code)
-            if (input.StartsWith('+') && input.Length >= 2)
+            // Try numeric code comparison
+            if (int.TryParse(input, out int numericCode))
             {
-                // Try to extract country code from phone number
-                var match = PhoneRegex().Match(input);
-                if (match.Success)
-                {
-                    country = Countries.FirstOrDefault(c =>
-                        string.Equals(c.CallingCode, match.Groups[1].Value, StringComparison.OrdinalIgnoreCase));
+                country = Countries.FirstOrDefault(c =>
+                    int.TryParse(c.NumericCode, out int countryNumeric) && countryNumeric == numericCode);
 
-                    if (country != null)
-                        return country;
+                if (country != null)
+                    return country;
+            }
+
+            // Handle phone code format (with or without + prefix)
+            string phoneCode = input;
+            if (input.StartsWith('+'))
+            {
+                // Simple phone code (like "+1" or "+44")
+                phoneCode = input.TrimStart('+');
+
+                // Try direct match first (for simple codes like "+1")
+                country = Countries.FirstOrDefault(c =>
+                    string.Equals(c.CallingCode, phoneCode, StringComparison.OrdinalIgnoreCase));
+
+                if (country != null)
+                    return country;
+
+                // For longer phone numbers, try to extract just the country code
+                if (input.Length > 2)
+                {
+                    var match = PhoneRegex().Match(input);
+                    if (match.Success)
+                    {
+                        phoneCode = match.Groups[1].Value;
+                        country = Countries.FirstOrDefault(c =>
+                            string.Equals(c.CallingCode, phoneCode, StringComparison.OrdinalIgnoreCase));
+
+                        if (country != null)
+                            return country;
+                    }
                 }
+            }
+            else
+            {
+                // Try to match without + prefix (e.g., "1" or "44")
+                country = Countries.FirstOrDefault(c =>
+                    string.Equals(c.CallingCode, input, StringComparison.OrdinalIgnoreCase));
+
+                if (country != null)
+                    return country;
             }
 
             // Try to find by partial name match if no exact match found
             country = Countries.FirstOrDefault(c =>
-                c.Name.Contains(input, StringComparison.OrdinalIgnoreCase) ||
-                c.OfficialName.Contains(input, StringComparison.OrdinalIgnoreCase) ||
-                c.AlternativeNames.Any(n => n.Contains(input, StringComparison.OrdinalIgnoreCase)) ||
-                c.LocalizedNames.Any(n => n.Value.Contains(input, StringComparison.OrdinalIgnoreCase))
+                (c.Name != null && c.Name.Contains(input, StringComparison.OrdinalIgnoreCase)) ||
+                (c.OfficialName != null && c.OfficialName.Contains(input, StringComparison.OrdinalIgnoreCase)) ||
+                (c.AlternativeNames != null && c.AlternativeNames.Any(n => n != null && n.Contains(input, StringComparison.OrdinalIgnoreCase))) ||
+                (c.LocalizedNames != null && c.LocalizedNames.Any(n => n.Value != null && n.Value.Contains(input, StringComparison.OrdinalIgnoreCase)))
             );
 
             return country;
