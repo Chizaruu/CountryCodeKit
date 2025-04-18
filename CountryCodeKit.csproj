@@ -9,10 +9,10 @@
 		<PackageId>CountryCodeKit</PackageId>
 		<Version>1.0.0</Version>
 		<Title>Country Code Kit</Title>
-		<Authors>AlterraLink, Chizaruu</Authors>
-		<Company>AlterraLink</Company>
+		<Authors>Alterra Link, Chizaruu</Authors>
+		<Company>Alterra Link</Company>
 		<Description>A comprehensive library for converting between different country code formats, names, and other country-related information. Supports ISO 3166-1 alpha-2, alpha-3, numeric codes, country names, phone codes, and more.</Description>
-		<Copyright>Copyright © 2025 AlterraLink</Copyright>
+		<Copyright>Copyright © 2025 Alterra Link</Copyright>
 		<PackageTags>country;code;converter;iso3166;alpha2;alpha3;countrycode;internationalization;i18n</PackageTags>
 		<PackageReleaseNotes>Initial release of CountryCodeKit</PackageReleaseNotes>
 
