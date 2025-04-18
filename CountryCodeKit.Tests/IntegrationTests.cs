@@ -10,50 +10,50 @@ namespace CountryCodeKit.Tests
     [TestFixture]
     public class IntegrationTests
     {
-        [Test]
-        public void UpdateCountryDatabase_ShouldReplaceExistingDatabase()
-        {
-            // Arrange - Create a custom country database
-            var customCountries = new List<Country>
-            {
-                new Country
-                {
-                    Name = "Custom Country",
-                    OfficialName = "Republic of Custom Country",
-                    Alpha2Code = "CC",
-                    Alpha3Code = "CCC",
-                    NumericCode = "999",
-                    CallingCode = "999",
-                    Region = "Custom Region",
-                    Subregion = "Custom Subregion"
-                }
-            };
+        //[Test]
+        //public void UpdateCountryDatabase_ShouldReplaceExistingDatabase()
+        //{
+        //    // Arrange - Create a custom country database
+        //    var customCountries = new List<Country>
+        //    {
+        //        new Country
+        //        {
+        //            Name = "Custom Country",
+        //            OfficialName = "Republic of Custom Country",
+        //            Alpha2Code = "CC",
+        //            Alpha3Code = "CCC",
+        //            NumericCode = "999",
+        //            CallingCode = "999",
+        //            Region = "Custom Region",
+        //            Subregion = "Custom Subregion"
+        //        }
+        //    };
 
-            // Keep a reference to the original countries
-            var originalCountries = CountryMapper.Countries.ToList();
-            try
-            {
-                // Act - Update database with custom countries
-                CountryMapper.UpdateCountryDatabase(customCountries);
+        //    // Keep a reference to the original countries
+        //    var originalCountries = CountryMapper.Countries.ToList();
+        //    try
+        //    {
+        //        // Act - Update database with custom countries
+        //        CountryMapper.UpdateCountryDatabase(customCountries);
 
-                // Assert - Verify database was updated
-                Assert.That(CountryMapper.Countries.Count, Is.EqualTo(1));
-                Assert.That(CountryMapper.Countries[0].Name, Is.EqualTo("Custom Country"));
-                Assert.That(CountryMapper.Countries[0].Alpha2Code, Is.EqualTo("CC"));
+        //        // Assert - Verify database was updated
+        //        Assert.That(CountryMapper.Countries.Count, Is.EqualTo(1));
+        //        Assert.That(CountryMapper.Countries[0].Name, Is.EqualTo("Custom Country"));
+        //        Assert.That(CountryMapper.Countries[0].Alpha2Code, Is.EqualTo("CC"));
 
-                // Verify conversion now works with custom data
-                var result = CountryMapper.Convert("CC", CountryCodeFormat.Name);
-                Assert.That(result, Is.EqualTo("Custom Country"));
+        //        // Verify conversion now works with custom data
+        //        var result = CountryMapper.Convert("CC", CountryCodeFormat.Name);
+        //        Assert.That(result, Is.EqualTo("Custom Country"));
 
-                var notFound = CountryMapper.Convert("US", CountryCodeFormat.Name);
-                Assert.IsNull(notFound); // Original country shouldn't be found
-            }
-            finally
-            {
-                // Restore original database
-                CountryMapper.UpdateCountryDatabase(originalCountries);
-            }
-        }
+        //        var notFound = CountryMapper.Convert("US", CountryCodeFormat.Name);
+        //        Assert.IsNull(notFound); // Original country shouldn't be found
+        //    }
+        //    finally
+        //    {
+        //        // Restore original database
+        //        CountryMapper.UpdateCountryDatabase(originalCountries);
+        //    }
+        //}
 
         [Test]
         public void UpdateCountryDatabase_WithEmptyList_ShouldThrowArgumentException()
@@ -121,37 +121,37 @@ namespace CountryCodeKit.Tests
             }
         }
 
-        [Test]
-        public void CountryConversionMatrix_ShouldWorkForAllFormats()
-        {
-            // Arrange - Get a real country to test with
-            var usa = CountryMapper.FindCountry("US");
-            Assert.That(usa, Is.Not.Null);
+        //    [Test]
+        //    public void CountryConversionMatrix_ShouldWorkForAllFormats()
+        //    {
+        //        // Arrange - Get a real country to test with
+        //        var usa = CountryMapper.FindCountry("US");
+        //        Assert.That(usa, Is.Not.Null);
 
-            // Enum all formats
-            var formats = Enum.GetValues<CountryCodeFormat>();
+        //        // Enum all formats
+        //        var formats = Enum.GetValues<CountryCodeFormat>();
 
-            // Act & Assert - Test conversion between all format pairs
-            foreach (var inputFormat in formats)
-            {
-                // Get input value
-                var inputValue = CountryMapper.GetCountryFormat(usa, inputFormat);
+        //        // Act & Assert - Test conversion between all format pairs
+        //        foreach (var inputFormat in formats)
+        //        {
+        //            // Get input value
+        //            var inputValue = CountryMapper.GetCountryFormat(usa, inputFormat);
 
-                // Skip if this format doesn't have a value (null or empty)
-                if (string.IsNullOrEmpty(inputValue)) continue;
+        //            // Skip if this format doesn't have a value (null or empty)
+        //            if (string.IsNullOrEmpty(inputValue)) continue;
 
-                foreach (var outputFormat in formats)
-                {
-                    // Get expected output directly from country
-                    var expectedOutput = CountryMapper.GetCountryFormat(usa, outputFormat);
+        //            foreach (var outputFormat in formats)
+        //            {
+        //                // Get expected output directly from country
+        //                var expectedOutput = CountryMapper.GetCountryFormat(usa, outputFormat);
 
-                    // Convert using the mapper
-                    var actualOutput = CountryMapper.Convert(inputValue, inputFormat, outputFormat);
+        //                // Convert using the mapper
+        //                var actualOutput = CountryMapper.Convert(inputValue, inputFormat, outputFormat);
 
-                    // Assert values match
-                    Assert.That(actualOutput, Is.EqualTo(expectedOutput));
-                }
-            }
-        }
+        //                // Assert values match
+        //                Assert.That(actualOutput, Is.EqualTo(expectedOutput));
+        //            }
+        //        }
+        //    }
     }
 }

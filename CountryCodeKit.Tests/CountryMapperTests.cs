@@ -118,7 +118,7 @@ namespace CountryCodeKit.Tests
             Assert.That(countryByPhone2, Is.Not.Null);
             Assert.That(countryByPhone2.Name, Is.EqualTo("United Kingdom"));
 
-            //// Act & Assert - Phone with extra digits
+            // Act & Assert - Phone with extra digits
             //var countryByPhone3 = CountryMapper.FindCountry("+81123456789");
             //Assert.That(countryByPhone3, Is.Not.Null);
             //Assert.That(countryByPhone3.Name, Is.EqualTo("Japan"));
