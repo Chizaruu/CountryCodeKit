@@ -1,103 +1,107 @@
 name: Build and Publish CountryCodeKit
 
 on:
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
-  workflow_dispatch:  # Allows manual triggering
+    push:
+        branches: [main]
+    pull_request:
+        branches: [main]
+    workflow_dispatch: # Allows manual triggering
 
 jobs:
-  build-and-publish:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 0  # Fetches all history for tags and branches (needed for GitVersion)
-      
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v3
-        with:
-          dotnet-version: "8.0.x"
-      
-      - name: Install GitVersion
-        uses: gittools/actions/gitversion/setup@v0.9.7
-        with:
-          versionSpec: "5.x"
-      
-      - name: Determine Version
-        id: gitversion
-        uses: gittools/actions/gitversion/execute@v0.9.7
-      
-      - name: Display GitVersion outputs
-        run: |
-          echo "Major: ${{ steps.gitversion.outputs.major }}"
-          echo "Minor: ${{ steps.gitversion.outputs.minor }}"
-          echo "Patch: ${{ steps.gitversion.outputs.patch }}"
-          echo "SemVer: ${{ steps.gitversion.outputs.semVer }}"
-      
-      - name: Update Version in Project File
-        run: |
-          sed -i 's|<Version>.*</Version>|<Version>${{ steps.gitversion.outputs.semVer }}</Version>|g' CountryCodeKit.csproj
-          # Also update the package version if it exists separately
-          if grep -q "<PackageVersion>" CountryCodeKit.csproj; then
-            sed -i 's|<PackageVersion>.*</PackageVersion>|<PackageVersion>${{ steps.gitversion.outputs.semVer }}</PackageVersion>|g' CountryCodeKit.csproj
-          fi
-      
-      - name: Restore dependencies
-        run: dotnet restore
-      
-      - name: Build
-        run: dotnet build --configuration Release --no-restore
-      
-      - name: Test
-        run: dotnet test --configuration Release --no-restore --verbosity normal
-        
-      - name: Pack NuGet package
-        run: dotnet pack --configuration Release --no-build --output nupkgs /p:Version=${{ steps.gitversion.outputs.semVer }}
-      
-      # Only publish when pushing to main, not on PRs
-      - name: Publish to GitHub Packages
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        run: |
-          for f in ./nupkgs/*.nupkg
-          do
-            dotnet nuget push $f --source https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json --api-key ${{ secrets.GITHUB_TOKEN }} --skip-duplicate
-          done
-      
-      # Publish to NuGet.org if NUGET_API_KEY is set
-      - name: Publish to NuGet.org
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && secrets.NUGET_API_KEY != ''
-        run: |
-          for f in ./nupkgs/*.nupkg
-          do
-            dotnet nuget push $f --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.NUGET_API_KEY }} --skip-duplicate
-          done
-          
-      # Create GitHub release with the new version
-      - name: Create GitHub Release
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: v${{ steps.gitversion.outputs.semVer }}
-          release_name: Release v${{ steps.gitversion.outputs.semVer }}
-          body: |
-            ## CountryCodeKit v${{ steps.gitversion.outputs.semVer }}
-            
-            Automatically built and released by GitHub Actions.
-            
-            ### What's Changed
-            * See commit history for changes: https://github.com/${{ github.repository }}/commits/${{ github.sha }}
-          draft: false
-          prerelease: false
-      
-      # Upload the NuGet packages as release assets
-      - name: Upload Release Assets
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        uses: softprops/action-gh-release@v1
-        with:
-          files: ./nupkgs/*
-          tag_name: v${{ steps.gitversion.outputs.semVer }}
+    build-and-publish:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v3
+              with:
+                  fetch-depth: 0 # Fetches all history for tags and branches (needed for GitVersion)
+
+            - name: Setup .NET
+              uses: actions/setup-dotnet@v3
+              with:
+                  dotnet-version: "8.0.x"
+
+            - name: Install GitVersion
+              uses: gittools/actions/gitversion/setup@v0.9.7
+              with:
+                  versionSpec: "5.x"
+
+            - name: Determine Version
+              id: gitversion
+              uses: gittools/actions/gitversion/execute@v0.9.7
+
+            - name: Display GitVersion outputs
+              run: |
+                  echo "Major: ${{ steps.gitversion.outputs.major }}"
+                  echo "Minor: ${{ steps.gitversion.outputs.minor }}"
+                  echo "Patch: ${{ steps.gitversion.outputs.patch }}"
+                  echo "SemVer: ${{ steps.gitversion.outputs.semVer }}"
+
+            - name: Update Version in Project File
+              run: |
+                  sed -i 's|<Version>.*</Version>|<Version>${{ steps.gitversion.outputs.semVer }}</Version>|g' CountryCodeKit.csproj
+                  # Also update the package version if it exists separately
+                  if grep -q "<PackageVersion>" CountryCodeKit.csproj; then
+                    sed -i 's|<PackageVersion>.*</PackageVersion>|<PackageVersion>${{ steps.gitversion.outputs.semVer }}</PackageVersion>|g' CountryCodeKit.csproj
+                  fi
+
+            - name: Restore dependencies
+              run: dotnet restore
+
+            - name: Build
+              run: dotnet build --configuration Release --no-restore
+
+            - name: Test
+              run: dotnet test --configuration Release --no-restore --verbosity normal
+
+            - name: Pack NuGet package
+              run: dotnet pack --configuration Release --no-build --output nupkgs /p:Version=${{ steps.gitversion.outputs.semVer }}
+
+            # Only publish when pushing to main, not on PRs
+            - name: Publish to GitHub Packages
+              if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+              run: |
+                  for f in ./nupkgs/*.nupkg
+                  do
+                    dotnet nuget push $f --source https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json --api-key ${{ secrets.GITHUB_TOKEN }} --skip-duplicate
+                  done
+
+            # Publish to NuGet.org
+            - name: Publish to NuGet.org
+              if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+              run: |
+                  if [[ -n "${{ secrets.NUGET_API_KEY }}" ]]; then
+                    for f in ./nupkgs/*.nupkg
+                    do
+                      dotnet nuget push $f --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.NUGET_API_KEY }} --skip-duplicate
+                    done
+                  else
+                    echo "NUGET_API_KEY is not set. Skipping publishing to NuGet.org."
+                  fi
+
+            # Create GitHub release with the new version
+            - name: Create GitHub Release
+              if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+              uses: actions/create-release@v1
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              with:
+                  tag_name: v${{ steps.gitversion.outputs.semVer }}
+                  release_name: Release v${{ steps.gitversion.outputs.semVer }}
+                  body: |
+                      ## CountryCodeKit v${{ steps.gitversion.outputs.semVer }}
+
+                      Automatically built and released by GitHub Actions.
+
+                      ### What's Changed
+                      * See commit history for changes: https://github.com/${{ github.repository }}/commits/${{ github.sha }}
+                  draft: false
+                  prerelease: false
+
+            # Upload the NuGet packages as release assets
+            - name: Upload Release Assets
+              if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+              uses: softprops/action-gh-release@v1
+              with:
+                  files: ./nupkgs/*
+                  tag_name: v${{ steps.gitversion.outputs.semVer }}
